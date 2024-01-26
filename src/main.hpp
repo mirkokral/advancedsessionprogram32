@@ -20,12 +20,20 @@
 static LGFX tft;
 
 String printqueue = "";
+char* sprbuf = "";
+
+#define LOGP(what, ...) \
+  sprintf(sprbuf, String(what).c_str(), __VA_ARGS__);\
+  printqueue += String(sprbuf);\
+  Serial.print(sprbuf);\
+  Serial.flush();
+  
 
 #define LOG(what) \
-  printqueue += String(what);\
+  printqueue += String(what) + "\n";\
   Serial.println(what);
 
-#define pqd tft.printf(printqueue)
+#define pqd tft.printf(printqueue.c_str())
 
 #define PANIC(reason, whattodo) \ 
     tft.println("Panic!");\

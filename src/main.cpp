@@ -287,9 +287,9 @@ void setup()
     //Wakeup touch chip
     pinMode(BOARD_TOUCH_INT, OUTPUT);
     digitalWrite(BOARD_TOUCH_INT, HIGH);
-    Serial.printf("Pin setup done in %dms\r\n", millis() - m);
-    Serial.flush();
-    Serial.println("Initializing the TFT and FS.");
+    LOGP("Pin setup done in %dms\r\n", millis() - m);
+    
+    LOG("Initializing the TFT and FS.");
     Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
     m = millis();
     tft.init();         /* TFT init */
@@ -304,7 +304,7 @@ void setup()
 
         }
     };
-    PANIC("Test", "commenting out this line");
+    // PANIC("Test", "commenting out this line");
     /*Set the touchscreen calibration data,
      the actual data for your display can be acquired using
      the Generic -> Touch_calibrate example from the TFT_eSPI library*/
@@ -313,17 +313,17 @@ void setup()
     WiFi.disconnect();
     // Set touch int input
     
-    Serial.printf("TFT init done in %dms\r\n", millis() - m);
-    Serial.flush();
-    Serial.println("Initializing LVGL.");
+    LOGP("TFT init done in %dms\r\n", millis() - m);
+    LOG("Initializing LVGL.");
+    pqd;
     m = millis();
     lv_init();
 
 #if LV_USE_LOG != 0
     lv_log_register_print_cb(my_print); /* register print function for debugging */
 #endif
-    Serial.printf("LVGL init done in %dms\r\n", millis() - m);
-    Serial.flush();
+    LOGP("LVGL init done in %dms\r\n", millis() - m);
+    pqd;
     m = millis();
     pinMode(BOARD_TOUCH_INT, INPUT);
     delay(20);
@@ -332,14 +332,15 @@ void setup()
     touch = new TouchLib(Wire, BOARD_I2C_SDA, BOARD_I2C_SCL, touchAddress);
 
     touch->init();
-    Serial.printf("Touch input done in %dms\r\n", millis() - m);
-    Serial.flush();
-    Serial.println("Set brightness.");
+    LOGP("Touch input done in %dms\r\n", millis() - m);
+    LOG("Set brightness.");
+    pqd;
     m = millis();
-    Serial.printf("Brightness set in %dms\r\n", millis() - m);
-    Serial.flush();
+    LOGP("Brightness set in %dms\r\n", millis() - m);
+    pqd;
 
-    Serial.println("LVGL display init.");
+    LOG("LVGL display init.");
+    pqd;
     m = millis();
     /*Initialize the display*/
     lv_display_t *disp = lv_display_create(320, 240);
@@ -352,9 +353,9 @@ void setup()
     lv_display_set_flush_cb(disp, my_disp_flush);
 
     /*Initialize the (dummy) input device driver*/
-    Serial.printf("LVGL display driver started in %dms\r\n", millis() - m);
-    Serial.flush();
-    Serial.println("LVGL input.");
+    LOGP("LVGL display driver started in %dms\r\n", millis() - m);
+    LOG("LVGL input.");
+    pqd;
     m = millis();
     lv_indev_t *kbdrv = lv_indev_create();
     lv_indev_set_type(kbdrv, LV_INDEV_TYPE_KEYPAD); /*See below.*/
@@ -367,11 +368,13 @@ void setup()
     lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER); /*See below.*/
     lv_indev_set_read_cb(indev, my_touchpad_read);   /*See below.*/
     // setBrightness(15);
-    Serial.printf("LVGL input driver started in %dms\r\n", millis() - m);
-    Serial.flush();
-    Serial.println("UI initialization.");
+    LOGP("LVGL input driver started in %dms\r\n", millis() - m);
+    LOG("UI initialization.");
+    pqd;
     ui_init();
-    Serial.printf("Setup done in %d ms\r\n", millis());
+    LOGP("Setup done in %d ms\r\n", millis());
+    pqd;
+    delay(1000);
 }
 
 void loop()
