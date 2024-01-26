@@ -22,6 +22,7 @@ static LGFX tft;
 String printqueue = "";
 char* sprbuf = "";
 
+
 #define LOGP(what, ...) \
   sprintf(sprbuf, String(what).c_str(), __VA_ARGS__);\
   printqueue += String(sprbuf);\
