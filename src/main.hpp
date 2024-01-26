@@ -23,16 +23,16 @@ String printqueue = "";
 char* sprbuf = "";
 
 
-#define LOGP(what, ...) \
-  sprintf(sprbuf, String(what).c_str(), __VA_ARGS__);\
-  printqueue += String(sprbuf);\
-  Serial.print(sprbuf);\
-  Serial.flush();
-  
-
-#define LOG(what) \
-  printqueue += String(what) + "\n";\
+void LOG(String what) {
+  printqueue += String(what) + "\n";
   Serial.println(what);
+}
+
+#define LOGP(what, ...)\
+  sprintf(sprbuf, String(what).c_str(), __VA_ARGS__);\
+  LOG(String(sprbuf));
+
+  
 
 #define pqd tft.printf(printqueue.c_str()); printqueue = ""
 
