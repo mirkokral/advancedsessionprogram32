@@ -34,7 +34,7 @@ char* sprbuf = "";
   printqueue += String(what) + "\n";\
   Serial.println(what);
 
-#define pqd tft.printf(printqueue.c_str())
+#define pqd tft.printf(printqueue.c_str()); printqueue = ""
 
 #define PANIC(reason, whattodo) \ 
     tft.println("Panic!");\
