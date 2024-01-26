@@ -17,7 +17,7 @@ if sys.version_info < (3,6,0):
   exit(1)
 
 fin = open(LV_CONF_TEMPLATE)
-fout = open(LV_CONF_INTERNAL, "w")
+fout = open(LV_CONF_INTERNAL, "w", newline='')
 
 fout.write(
 '''/**
@@ -30,7 +30,25 @@ fout.write(
 #define LV_CONF_INTERNAL_H
 /* clang-format off */
 
-#include <stdint.h>
+/*Config options*/
+#define LV_OS_NONE          0
+#define LV_OS_PTHREAD       1
+#define LV_OS_FREERTOS      2
+#define LV_OS_CMSIS_RTOS2   3
+#define LV_OS_RTTHREAD      4
+#define LV_OS_WINDOWS       5
+#define LV_OS_CUSTOM        255
+
+#define LV_STDLIB_BUILTIN           0
+#define LV_STDLIB_CLIB              1
+#define LV_STDLIB_MICROPYTHON       2
+#define LV_STDLIB_RTTHREAD          3
+#define LV_STDLIB_CUSTOM            255
+
+#define LV_DRAW_SW_ASM_NONE         0
+#define LV_DRAW_SW_ASM_NEON         1
+#define LV_DRAW_SW_ASM_HELIUM       2
+#define LV_DRAW_SW_ASM_CUSTOM       255
 
 /* Handle special Kconfig options */
 #ifndef LV_KCONFIG_IGNORE
@@ -92,19 +110,19 @@ for line in fin.read().splitlines():
   if '/*--END OF LV_CONF_H--*/' in line: break
 
   #Is there a #define in this line?
-  r = re.search(r'^([\s]*)#[\s]*define[\s]+([^\s]+).*$', line)   # \s means any white space character
+  r = re.search(r'^([\s]*)#[\s]*(undef|define)[\s]+([^\s]+).*$', line)   # \s means any white space character
 
   if r:
     indent = r[1]
 
-    name = r[2]
+    name = r[3]
     name = re.sub('\(.*?\)', '', name, 1)    #remove parentheses from macros. E.g. MY_FUNC(5) -> MY_FUNC
 
-    name_and_value = re.sub('[\s]*#[\s]*define', '', line, 1)
+    line = re.sub('[\s]*', '', line, 1)
 
     #If the value should be 1 (enabled) by default use a more complex structure for Kconfig checks because
     #if a not defined CONFIG_... value should be interpreted as 0 and not the LVGL default
-    is_one = re.search(r'[\s]*#[\s]*define[\s]*[A-Z0-9_]+[\s]+1([\s]*$|[\s]+)', line)
+    is_one = re.search(r'#[\s]*define[\s]*[A-Z0-9_]+[\s]+1([\s]*$|[\s]+)', line)
     if is_one:
       #1. Use the value if already set from lv_conf.h or anything else (i.e. do nothing)
       #2. In Kconfig environment use the CONFIG_... value if set, else use 0
@@ -119,7 +137,7 @@ for line in fin.read().splitlines():
         f'{indent}            #define {name} 0\n'
         f'{indent}        #endif\n'
         f'{indent}    #else\n'
-        f'{indent}        #define{name_and_value}\n'
+        f'{indent}        {line}\n'
         f'{indent}    #endif\n'
         f'{indent}#endif\n'
       )
@@ -133,7 +151,7 @@ for line in fin.read().splitlines():
         f'{indent}    #ifdef CONFIG_{name.upper()}\n'
         f'{indent}        #define {name} CONFIG_{name.upper()}\n'
         f'{indent}    #else\n'
-        f'{indent}        #define{name_and_value}\n'
+        f'{indent}        {line}\n'
         f'{indent}    #endif\n'
         f'{indent}#endif\n'
       )
@@ -150,10 +168,13 @@ fout.write(
  * End of parsing lv_conf_template.h
  -----------------------------------*/
 
+#ifndef __ASSEMBLY__
 LV_EXPORT_CONST_INT(LV_DPI_DEF);
+LV_EXPORT_CONST_INT(LV_DRAW_BUF_STRIDE_ALIGN);
+LV_EXPORT_CONST_INT(LV_DRAW_BUF_ALIGN);
+#endif
 
 #undef _LV_KCONFIG_PRESENT
-
 
 /*Set some defines if a dependency is disabled*/
 #if LV_USE_LOG == 0

@@ -111,3 +111,43 @@ code.sig-name
 .lv-example-link-button:visited {
     color: white;
 }
+
+dl.cpp.unexpanded dd {
+    display: none;
+}
+
+.lv-api-expansion-button {
+    padding: 4px;
+}
+.lv-api-expansion-button::before {
+    font-family: FontAwesome, "Lato","proxima-nova","Helvetica Neue",Arial,sans-serif;
+    display: inline-block;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+.unexpanded .lv-api-expansion-button::before {
+    content: "\f0da \00a0";
+}
+.expanded .lv-api-expansion-button::before {
+    content: "\f0d7 \00a0";
+}
+
+.wy-nav-content{
+    padding: 1.618em 3.236em;
+    height: 100%;
+    max-width: 1920px;
+    margin: auto
+}
+
+div.body {
+    min-width: 360px;
+    max-width: 1920px;
+}
+
+.cpp-expr {
+  font-family: SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,Courier,monospace;
+  color: #e74c3c;
+  padding: 2px 5px;
+  border: 1px solid #e1e4e5;
+  font-size: 75%;
+}
