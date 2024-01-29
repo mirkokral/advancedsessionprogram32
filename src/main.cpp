@@ -300,8 +300,7 @@ void setup()
     if(!LittleFS.begin()) {
         LittleFS.format();
         if(!LittleFS.begin()) {
-            PANIC("LittleFS.begin() failed after retry.", "check for damages, replace chip or retry by resetting")
-
+            PANIC("LittleFS.begin() failed after retry.", "check for damages, replace chip or retry by resetting");
         }
     };
     // PANIC("Test", "commenting out this line");
