@@ -19,30 +19,5 @@
 #include <lgfx.h>
 static LGFX tft;
 
-String printqueue = "";
-char* sprbuf = "";
 
-
-void LOG(String what) {
-  printqueue += String(what) + "\n";
-  Serial.println(what);
-}
-
-#define LOGP(what, ...)\
-  sprintf(sprbuf, String(what).c_str(), __VA_ARGS__);\
-  LOG(String(sprbuf));
-
-  
-
-#define pqd tft.printf(printqueue.c_str()); printqueue = ""
-
-#define PANIC(reason, whattodo) \ 
-    tft.println("Panic!");\
-    tft.printf("At: %s:%d\n", __FILE__, __LINE__);\
-    tft.println("");\
-    tft.println(String("Reason: ") + String(reason) + String("\n"));\
-    tft.println(String("To fix, try ") + String(whattodo) + String("\n"));\
-    while(1) {\
-        delay(1000);\ 
-    }
-
+void LOG(String what);

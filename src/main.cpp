@@ -14,6 +14,13 @@ static const uint16_t screenWidth = 320;
 static const uint16_t screenHeight = 240;
 TouchLib *touch = NULL;
 
+String printqueue = "";
+char* sprbuf = "";
+
+
+#include "esp_task_wdt.h"
+#include <rtc_wdt.h>
+
 
 // lv_obj_t *list;
 // lv_obj_t *label;
@@ -23,6 +30,31 @@ TouchLib *touch = NULL;
 // static lv_draw_buf_t * draw_buf2;
 // static lv_color_t buf2[ screenWidth * screenHeight / 10 ];
 
+
+void LOG(String what) {
+  printqueue = printqueue + String(what) + "\n";
+  Serial.println(what);
+}
+
+#define LOGP(what, ...)\
+  sprintf(sprbuf, String(what).c_str(), __VA_ARGS__);\
+  LOG(String(sprbuf));
+
+  
+
+#define pqd tft.printf(printqueue.c_str()); printqueue = ""
+
+#define PANIC(reason, whattodo) \
+    tft.setColor<uint16_t>(0xf800);\
+    tft.setCursor(0, 0); \
+    tft.println("Panic!");\
+    tft.printf("At: %s:%d\n", __FILE__, __LINE__);\
+    tft.println("");\
+    tft.println(String("Reason: ") + String(reason) + String("\n"));\
+    tft.println(String("To fix, try ") + String(whattodo) + String("\n"));\
+    while(1) {\
+        delay(1000);\
+    }
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
@@ -96,7 +128,7 @@ static bool getTouch(int32_t &x, int32_t &y)
     return true;
 }
 /* Display flushing */
-void my_disp_flush(lv_disp_t *disp, const lv_area_t *area, void *px_map)
+void my_disp_flush(lv_display_t *disp, const lv_area_t *area, void *px_map)
 {
     uint32_t w = (area->x2 - area->x1 + 1);
     uint32_t h = (area->y2 - area->y1 + 1);
@@ -313,6 +345,17 @@ void setup()
     // Set touch int input
     
     LOGP("TFT init done in %dms\r\n", millis() - m);
+    
+    
+    // if(esp_task_wdt_deinit() != ESP_OK) {
+    //     PANIC("Cannot deinit TWDT.", "fix code or contact author");
+    // }
+    
+    rtc_wdt_protect_off(); 
+    rtc_wdt_disable();
+    disableCore0WDT();
+    disableLoopWDT();
+    esp_task_wdt_delete(NULL);
     LOG("Initializing LVGL.");
     pqd;
     m = millis();
@@ -350,7 +393,7 @@ void setup()
     lv_display_set_buffers(disp, buf, NULL, 320*240/10, LV_DISPLAY_RENDER_MODE_PARTIAL);
 
     lv_display_set_flush_cb(disp, my_disp_flush);
-
+    
     /*Initialize the (dummy) input device driver*/
     LOGP("LVGL display driver started in %dms\r\n", millis() - m);
     LOG("LVGL input.");
@@ -373,13 +416,13 @@ void setup()
     ui_init();
     LOGP("Setup done in %d ms\r\n", millis());
     pqd;
-    delay(1000);
 }
 
 void loop()
 {
+    
     unsigned long d = millis();
-    tft.setCursor(0, 0);
+    // tft.setCursor(0, 0);
     lv_timer_handler();
     lv_tick_inc(millis() - d);
 }
