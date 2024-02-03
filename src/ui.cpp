@@ -254,6 +254,7 @@ void ui_init() {
 
     lv_indev_t * indev = NULL;
     for(;;) {
+        
         indev = lv_indev_get_next(indev);
         if(!indev) {
             break;

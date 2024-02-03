@@ -19,7 +19,5 @@
 #include <lgfx.h>
 #include <SoftwareSerial.h>
 static LGFX tft;
-SoftwareSerial ss(3, 1);
-Stream *loggingStream = &ss;
 
 void LOG(String what);

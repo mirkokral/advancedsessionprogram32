@@ -1,7 +1,10 @@
 #include <Arduino.h>
 #include <main.hpp>
+#include <rsi.hpp>
 
-#define Serial (*loggingStream) // Still be able to access serial using the grove port on the side
+// SoftwareSerial* loggingStream;
+
+// #define Serial (*loggingStream) // Still be able to access serial using the grove port on the side
 
 unsigned long m = 0;
 /*Change to your screen resolution*/
@@ -285,11 +288,12 @@ void scanDevices(TwoWire *w)
 }
 void setup()
 {
+    // loggingStream = &SoftwareSerial(3, 1);
     // rtc_wdt_protect_off(); 
     // rtc_wdt_disable();
-    disableCore0WDT();
-    disableLoopWDT();
-    esp_task_wdt_delete(NULL);
+    // disableCore0WDT();
+    // disableLoopWDT();
+    // esp_task_wdt_delete(NULL);
     Serial.begin(115200); /* prepare for possible serial debug */
     delay(1000);
     Serial.println("Advanced Session Program V1.1: setup()");
@@ -335,12 +339,6 @@ void setup()
             PANIC("LittleFS.begin() failed after retry.", "check for damages, replace chip or retry by resetting");
         }
     };
-    unsigned long startmillis = millis();
-    while(millis() - startmillis < 1000) {
-        if(keypad_get_key() == 32) {
-        }
-        delay(10);
-    }
     // PANIC("Test", "commenting out this line");
     /*Set the touchscreen calibration data,
      the actual data for your display can be acquired using
@@ -371,7 +369,7 @@ void setup()
     pinMode(BOARD_TOUCH_INT, INPUT);
     delay(20);
     scanDevices(&Wire);
-
+    
     touch = new TouchLib(Wire, BOARD_I2C_SDA, BOARD_I2C_SCL, touchAddress);
 
     touch->init();
@@ -412,6 +410,13 @@ void setup()
     lv_indev_set_read_cb(indev, my_touchpad_read);   /*See below.*/
     // setBrightness(15);
     LOGP("LVGL input driver started in %dms\r\n", millis() - m);
+    unsigned long startmillis = millis();
+    while(millis() - startmillis < 1000) {
+        if(keypad_get_key() == 32) {
+            rEnter("Key");
+        }
+        delay(10);
+    }
     LOG("UI initialization.");
     pqd;
     ui_init();
@@ -424,6 +429,7 @@ void loop()
     
     unsigned long d = millis();
     // tft.setCursor(0, 0);
-    lv_timer_handler();
+    delay(lv_timer_handler());
     lv_tick_inc(millis() - d);
+    
 }
