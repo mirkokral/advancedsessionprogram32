@@ -1,13 +1,8 @@
 #include <Arduino.h>
-#include <SoftwareSerial.h>
-
-
-#if 1
-    SoftwareSerial ss(3, 1);
-    #define Serial ss // Still be able to access serial using the grove port on the side
-#endif
-
 #include <main.hpp>
+
+#define Serial (*loggingStream) // Still be able to access serial using the grove port on the side
+
 unsigned long m = 0;
 /*Change to your screen resolution*/
 static const uint16_t screenWidth = 320;
@@ -19,7 +14,7 @@ char* sprbuf = "";
 
 
 #include "esp_task_wdt.h"
-#include <rtc_wdt.h>
+// #include <rtc_wdt.h>
 
 
 // lv_obj_t *list;
@@ -42,7 +37,7 @@ void LOG(String what) {
 
   
 
-#define pqd tft.printf(printqueue.c_str()); printqueue = ""
+#define pqd printqueue = ""
 
 #define PANIC(reason, whattodo) \
     tft.setColor<uint16_t>(0xf800);\
@@ -290,6 +285,11 @@ void scanDevices(TwoWire *w)
 }
 void setup()
 {
+    // rtc_wdt_protect_off(); 
+    // rtc_wdt_disable();
+    disableCore0WDT();
+    disableLoopWDT();
+    esp_task_wdt_delete(NULL);
     Serial.begin(115200); /* prepare for possible serial debug */
     delay(1000);
     Serial.println("Advanced Session Program V1.1: setup()");
@@ -335,6 +335,12 @@ void setup()
             PANIC("LittleFS.begin() failed after retry.", "check for damages, replace chip or retry by resetting");
         }
     };
+    unsigned long startmillis = millis();
+    while(millis() - startmillis < 1000) {
+        if(keypad_get_key() == 32) {
+        }
+        delay(10);
+    }
     // PANIC("Test", "commenting out this line");
     /*Set the touchscreen calibration data,
      the actual data for your display can be acquired using
@@ -351,11 +357,6 @@ void setup()
     //     PANIC("Cannot deinit TWDT.", "fix code or contact author");
     // }
     
-    rtc_wdt_protect_off(); 
-    rtc_wdt_disable();
-    disableCore0WDT();
-    disableLoopWDT();
-    esp_task_wdt_delete(NULL);
     LOG("Initializing LVGL.");
     pqd;
     m = millis();
