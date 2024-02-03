@@ -7,7 +7,6 @@
 #include <apps/testapp/TestApp.hpp>
 #include <apps/menuexapp/MenuApp.hpp>
 #include <apps/thermalapp/ThermalApp.hpp>
-#include <apps/2048app/2048App.hpp>
 
 
 // GROUPS
@@ -29,15 +28,19 @@ static lv_obj_t * bWifiClose;
 static lv_obj_t * lWifiClose;
 static lv_obj_t * bWifiScan;
 static lv_obj_t * lWifiScan;
+static lv_obj_t * appScr;
+static lv_obj_t * blankPlaceholder;
+static lv_obj_t * appOverlay;
 
 // STATE VARIABLES
 bool locked = true;
+bool scrollBecauseExitApp = false;
 AppBase* currentlyRunningApp = NULL;
 
 // UTILITY VARIABLES
 lv_obj_t* menuitems[] = {wifibtn, lockbtn, applist}; // Menu items that need to be unclickable while not shown
 lv_obj_t* wifidialogitems[] = {iWifi, bWifiClose}; // Wifi dialog items that need to be unclickable while not shown
-
+lv_obj_t* cscr = NULL;
 
 // FUNCTION DEFINITIONS
 static void updateLocked();
@@ -65,22 +68,23 @@ bool isapphandleropen = false;
 //         delay(1000);
 //     }
 // }
-
+void exitApp();
 void AppTH(void* app) {
     ((AppBase*)app)->th = xTaskGetCurrentTaskHandle();
     ((AppBase*)app)->taskFunction();
-    lv_screen_load_anim(
-        mainscr,
-        LV_SCR_LOAD_ANIM_FADE_ON,
-        100,
-        0,
-        true
-    );
-    while(lv_screen_active() != mainscr) delay(100);
-    currentlyRunningApp = NULL;
-    vTaskDelete(xTaskGetCurrentTaskHandle());
+    exitApp();     
 }
+void exitApp() {
+    scrollBecauseExitApp = true;
+    lv_obj_scroll_to_x(appOverlay, 0, LV_ANIM_ON);
+    while(lv_obj_get_scroll_x(appOverlay) != 0) {delay(100);}
+    
+    lv_obj_set_parent(cscr, NULL);
+    TaskHandle_t th = currentlyRunningApp->th;
+    currentlyRunningApp = NULL;
 
+    vTaskDelete(th);
+}
 void RunApp(AppBase* app) {
     // if(!isapphandleropen) {
         // xTaskCreate(
@@ -94,15 +98,10 @@ void RunApp(AppBase* app) {
     // }
     if(currentlyRunningApp == NULL) {
         currentlyRunningApp = app;
-        lv_obj_t* nscr = app->prepareScreen();
+        cscr = app->prepareScreen();
 
-        lv_screen_load_anim(
-            nscr,
-            LV_SCR_LOAD_ANIM_FADE_ON,
-            100,
-            0,
-            false
-        );
+        lv_obj_set_parent(cscr, appOverlay);
+        lv_obj_scroll_to_view(cscr, LV_ANIM_ON);
         xTaskCreate(AppTH, (String(app->name) + " task").c_str(), 16667, (void*)app, 0, NULL);
     }
     
@@ -308,10 +307,6 @@ void ui_init() {
     lv_obj_add_event_cb(tappbtn, click, LV_EVENT_CLICKED, menuapp);
     lv_obj_set_style_bg_opa(tappbtn, 0, LV_PART_MAIN);
 
-    Game2048App* g2048app = new Game2048App();
-    tappbtn = lv_list_add_button(applist, (g2048app->icon), (g2048app->name));
-    lv_obj_add_event_cb(tappbtn, click, LV_EVENT_CLICKED, g2048app);
-    lv_obj_set_style_bg_opa(tappbtn, 0, LV_PART_MAIN);
 
     lv_obj_set_style_border_width(applist, 0, LV_PART_MAIN);
     lv_obj_set_style_opa(applist, 0, LV_PART_SCROLLBAR);
@@ -370,7 +365,36 @@ void ui_init() {
     lv_obj_align(pWifi, LV_ALIGN_CENTER,0 ,0);
     lv_obj_align(iWifi, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_set_size(iWifi, LV_PCT(100), LV_PCT(100));
+    appOverlay = lv_obj_create(mainscr);
+    lv_obj_set_size(appOverlay, 320, 240);
+    lv_obj_remove_flag(appOverlay, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_scroll_dir(appOverlay, LV_DIR_RIGHT);
+    lv_obj_set_scroll_snap_x(appOverlay, LV_SCROLL_SNAP_CENTER);
+    lv_obj_set_style_bg_opa(appOverlay, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(appOverlay, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_border_width(appOverlay, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_border_width(appOverlay, 0, LV_PART_MAIN);
+    lv_obj_set_style_radius(appOverlay, 0, LV_PART_MAIN);
+    lv_obj_set_flex_flow(appOverlay, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_pad_all(appOverlay, 0, LV_PART_MAIN);
+    lv_obj_add_event_cb(appOverlay, [](lv_event_t* e){
+        if(!scrollBecauseExitApp) {
+            if(lv_obj_get_scroll_x(appOverlay) == 0) {
+                if(currentlyRunningApp != NULL) {
+                    exitApp();
+                }
+            }
+        } else {
+            scrollBecauseExitApp = false;
+        }
+    }, LV_EVENT_SCROLL_END, NULL);
 
+    blankPlaceholder = lv_obj_create(appOverlay);
+    lv_obj_set_size(blankPlaceholder, 320, 240);
+    lv_obj_set_style_opa(blankPlaceholder, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(blankPlaceholder, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_opa(blankPlaceholder, 0, LV_PART_MAIN);
+    lv_obj_remove_flag(blankPlaceholder, LV_OBJ_FLAG_CLICKABLE);
     updateLocked();
 }
 

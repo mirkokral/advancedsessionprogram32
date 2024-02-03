@@ -12,12 +12,11 @@
   and uncomment the following line.
 */
 #include <ui.hpp>
+#include "tft.hpp"
 #define TOUCH_MODULES_GT911 1
 #include <TouchLib.h>
 #include <esp32-hal-psram.h>
-#include <LovyanGFX.hpp>
-#include <lgfx.h>
-static LGFX tft;
+
 
 String printqueue = "";
 

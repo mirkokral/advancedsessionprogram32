@@ -1,6 +1,6 @@
 #include "MenuApp.hpp"
 #include <WiFi.h>
-#include <main.hpp>
+#include <tft.hpp>
 bool isappopen = true;
 bool scanning = false;
 
@@ -98,7 +98,7 @@ lv_obj_t *MenuApp::prepareScreen() {
 
     
 
-    lv_obj_t* scr = lv_obj_create(NULL);
+    lv_obj_t* scr = lv_obj_create(nullparent);
     lv_obj_t * menu = lv_menu_create(scr);
     lv_menu_set_mode_root_back_button(menu, LV_MENU_ROOT_BACK_BUTTON_ENABLED);
     lv_obj_add_event_cb(menu, back_event_handler, LV_EVENT_CLICKED, menu);
@@ -253,8 +253,6 @@ void MenuApp::taskFunction( ){
             }
             lv_obj_clean(wifilist);
             for(int i = 0; i < n; i++) {
-                Serial.printf("%i: %s", i, WiFi.SSID(i));
-                Serial.flush();
                 int level = calculateSignalLevel(WiFi.RSSI(i), 5);
                 String lvltext = "";
 

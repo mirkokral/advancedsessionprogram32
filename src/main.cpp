@@ -2,7 +2,7 @@
 #include <SoftwareSerial.h>
 
 
-#if 1
+#if 0
     SoftwareSerial ss(3, 1);
     #define Serial ss // Still be able to access serial using the grove port on the side
 #endif
@@ -304,7 +304,7 @@ void setup()
 
         }
     };
-    PANIC("Test", "commenting out this line");
+    // PANIC("Test", "commenting out this line");
     /*Set the touchscreen calibration data,
      the actual data for your display can be acquired using
      the Generic -> Touch_calibrate example from the TFT_eSPI library*/

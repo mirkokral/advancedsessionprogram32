@@ -15,7 +15,7 @@ void ThermalApp::feedbuttonhandler(lv_event_t* e) {
 }
 
 lv_obj_t *ThermalApp::prepareScreen() {
-    scr = lv_obj_create(NULL);
+    scr = lv_obj_create(nullparent);
     textarea = lv_textarea_create(scr);
     closebutton = lv_button_create(scr);
     closebuttonlbl = lv_label_create(closebutton);
