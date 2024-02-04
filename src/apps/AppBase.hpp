@@ -2,7 +2,6 @@
 
 #include <Arduino.h>
 #include <lvgl.h>
-#include <nullparent.hpp>
 
 class AppBase {
     public:

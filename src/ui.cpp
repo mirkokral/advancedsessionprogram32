@@ -68,6 +68,7 @@ bool isapphandleropen = false;
 //         delay(1000);
 //     }
 // }
+lv_obj_t* hell;
 void exitApp();
 void AppTH(void* app) {
     ((AppBase*)app)->th = xTaskGetCurrentTaskHandle();
@@ -79,7 +80,7 @@ void exitApp() {
     lv_obj_scroll_to_x(appOverlay, 0, LV_ANIM_ON);
     while(lv_obj_get_scroll_x(appOverlay) != 0) {delay(100);}
     
-    lv_obj_set_parent(cscr, NULL);
+    lv_obj_set_parent(cscr, hell);
     TaskHandle_t th = currentlyRunningApp->th;
     currentlyRunningApp = NULL;
 
@@ -100,8 +101,10 @@ void RunApp(AppBase* app) {
         currentlyRunningApp = app;
         cscr = app->prepareScreen();
 
+        lv_obj_set_size(cscr, 320, 240);
         lv_obj_set_parent(cscr, appOverlay);
-        lv_obj_scroll_to_view(cscr, LV_ANIM_ON);
+        lv_obj_set_style_pad_all(cscr, 0, LV_PART_MAIN);
+        lv_obj_scroll_to_x(appOverlay, 500, LV_ANIM_ON);
         xTaskCreate(AppTH, (String(app->name) + " task").c_str(), 16667, (void*)app, 0, NULL);
     }
     
@@ -290,7 +293,7 @@ void ui_init() {
     lv_obj_add_event_cb(applist, event_handler, LV_EVENT_ALL, NULL);
 
     lv_obj_t* tappbtn;
-    
+    hell = lv_obj_create(NULL);
     
     TestApp* testapp = new TestApp();
     tappbtn = lv_list_add_button(applist, (testapp->icon), (testapp->name));
@@ -368,7 +371,7 @@ void ui_init() {
     appOverlay = lv_obj_create(mainscr);
     lv_obj_set_size(appOverlay, 320, 240);
     lv_obj_remove_flag(appOverlay, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_scroll_dir(appOverlay, LV_DIR_RIGHT);
+    lv_obj_set_scroll_dir(appOverlay, LV_DIR_HOR);
     lv_obj_set_scroll_snap_x(appOverlay, LV_SCROLL_SNAP_CENTER);
     lv_obj_set_style_bg_opa(appOverlay, 0, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(appOverlay, 0, LV_PART_SCROLLBAR);

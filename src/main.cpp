@@ -2,7 +2,7 @@
 #include <SoftwareSerial.h>
 
 
-#if 0
+#if 1
     SoftwareSerial ss(3, 1);
     #define Serial ss // Still be able to access serial using the grove port on the side
 #endif
@@ -96,14 +96,14 @@ static bool getTouch(int32_t &x, int32_t &y)
     return true;
 }
 /* Display flushing */
-void my_disp_flush(lv_disp_t *disp, const lv_area_t *area, void *px_map)
+void my_disp_flush(lv_display_t * disp, const lv_area_t * area, lv_color16_t * px_map)
 {
     uint32_t w = (area->x2 - area->x1 + 1);
     uint32_t h = (area->y2 - area->y1 + 1);
 
     tft.startWrite();
     tft.setAddrWindow(area->x1, area->y1, w, h);
-    tft.pushColors((uint16_t *)px_map, w * h, true);
+    tft.pushPixelsDMA((uint16_t *)px_map, w * h, true); // Each pixel takes 2 bytes (16 bits)
     tft.endWrite();
 
     lv_disp_flush_ready(disp);

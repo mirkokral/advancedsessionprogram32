@@ -1,6 +1,5 @@
 #pragma once
 #include "esp_heap_caps.h"
-
 #include <lvgl.h>
 #include <Arduino.h>
 #include <utilities.h>

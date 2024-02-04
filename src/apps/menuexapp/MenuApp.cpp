@@ -4,18 +4,7 @@
 bool isappopen = true;
 bool scanning = false;
 
-lv_obj_t* scanbtn;
-lv_obj_t* constext;
-lv_obj_t* wifilist;
-lv_obj_t * mbox1;
 String lastText = "";
-enum {
-    LV_MENU_ITEM_BUILDER_VARIANT_1,
-    LV_MENU_ITEM_BUILDER_VARIANT_2,
-    LV_MENU_ITEM_BUILDER_VARIANT_3
-};
-typedef uint8_t lv_menu_builder_variant_t;
-lv_obj_t* root_page;
 
 void wifiScanHandler(lv_event_t* r) {
     scanning = true;
@@ -25,7 +14,7 @@ void brightnessSliderHandler(lv_event_t* r) {
     tft.setBrightness(lv_slider_get_value(lv_event_get_current_target_obj(r)));
 }
 
-static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char * txt,
+lv_obj_t * MenuApp::create_text(lv_obj_t * parent, const char * icon, const char * txt,
                               lv_menu_builder_variant_t builder_variant)
 {
     lv_obj_t * obj = lv_menu_cont_create(parent);
@@ -49,13 +38,13 @@ static lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char *
     }
     if(builder_variant == LV_MENU_ITEM_BUILDER_VARIANT_2 && icon && txt) {
         lv_obj_add_flag(img, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
-        lv_obj_swap(img, label);
+        lv_obj_swap(label, img);
     }
 
     return obj;
 }
 
-static lv_obj_t * create_slider(lv_obj_t * parent, const char * icon, const char * txt, int32_t min, int32_t max,
+lv_obj_t * MenuApp::create_slider(lv_obj_t * parent, const char * icon, const char * txt, int32_t min, int32_t max,
                                 int32_t val)
 {
     lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
@@ -72,7 +61,7 @@ static lv_obj_t * create_slider(lv_obj_t * parent, const char * icon, const char
     return obj;
 }
 
-static lv_obj_t * create_switch(lv_obj_t * parent, const char * icon, const char * txt, bool chk)
+lv_obj_t * MenuApp::create_switch(lv_obj_t * parent, const char * icon, const char * txt, bool chk)
 {
     lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_1);
 
@@ -98,7 +87,7 @@ lv_obj_t *MenuApp::prepareScreen() {
 
     
 
-    lv_obj_t* scr = lv_obj_create(nullparent);
+    lv_obj_t* scr = lv_obj_create(lv_obj_create(NULL));
     lv_obj_t * menu = lv_menu_create(scr);
     lv_menu_set_mode_root_back_button(menu, LV_MENU_ROOT_BACK_BUTTON_ENABLED);
     lv_obj_add_event_cb(menu, back_event_handler, LV_EVENT_CLICKED, menu);
@@ -171,7 +160,7 @@ lv_obj_t *MenuApp::prepareScreen() {
     cont = create_text(section, LV_SYMBOL_KEYBOARD, "Keyboard", LV_MENU_ITEM_BUILDER_VARIANT_1);
     lv_menu_set_load_page_event(menu, cont, sub_kb_page);
     Serial.println("Display section button");
-    cont = create_text(section, "", "Display", LV_MENU_ITEM_BUILDER_VARIANT_1);
+    cont = create_text(section, LV_SYMBOL_SETTINGS, "Display", LV_MENU_ITEM_BUILDER_VARIANT_1);
     lv_menu_set_load_page_event(menu, cont, sub_display_page);
 
     Serial.println("Set Sidebar Page");
