@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
-
+#include <config.h>
 
 #if 1
     SoftwareSerial ss(3, 1);
@@ -103,7 +103,11 @@ void my_disp_flush(lv_display_t * disp, const lv_area_t * area, lv_color16_t * p
 
     tft.startWrite();
     tft.setAddrWindow(area->x1, area->y1, w, h);
+    #if PUSHPIXELS_USE_DMA
     tft.pushPixelsDMA((uint16_t *)px_map, w * h, true); // Each pixel takes 2 bytes (16 bits)
+    #else
+    tft.pushPixels((uint16_t*)px_map, w*h, true);
+    #endif
     tft.endWrite();
 
     lv_disp_flush_ready(disp);
@@ -177,8 +181,13 @@ static void trackball_read(lv_indev_t *indev_drv, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_PR;
         break;
     case 1:
+        #if TRACKBALL_MODE == MODE_ARROWS
         lki = LV_KEY_UP;
         data->key = LV_KEY_UP;
+        #else
+        lki = LV_KEY_PREV;
+        data->key = LV_KEY_PREV;
+        #endif
         data->state = LV_INDEV_STATE_PR;
         break;
     case 2:
@@ -187,8 +196,13 @@ static void trackball_read(lv_indev_t *indev_drv, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_PR;
         break;
     case 3:
+        #if TRACKBALL_MODE == MODE_ARROWS
         lki = LV_KEY_DOWN;
         data->key = LV_KEY_DOWN;
+        #else
+        lki = LV_KEY_NEXT;
+        data->key = LV_KEY_NEXT;
+        #endif
         data->state = LV_INDEV_STATE_PR;
         break;
     case 4:
