@@ -156,7 +156,7 @@ static uint32_t keypad_get_key(void) {
         case 'p': return '='; break;
         case 'g': return '\\'; break;
         case 'k': return '~'; break;
-        
+        // stole this directly outta tulipcc docs :tr:
         default:
             return chord;
             break;
