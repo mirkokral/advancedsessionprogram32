@@ -71,7 +71,6 @@ lv_obj_t * MenuApp::create_switch(lv_obj_t * parent, const char * icon, const ch
     return obj;
 }
 
-TaskHandle_t hhh;
 
 static void back_event_handler(lv_event_t * e)
 {
@@ -87,7 +86,7 @@ lv_obj_t *MenuApp::prepareScreen() {
 
     
 
-    lv_obj_t* scr = lv_obj_create(lv_obj_create(NULL));
+    lv_obj_t* scr = lv_obj_create(NULL);
     lv_obj_t * menu = lv_menu_create(scr);
     lv_menu_set_mode_root_back_button(menu, LV_MENU_ROOT_BACK_BUTTON_ENABLED);
     lv_obj_add_event_cb(menu, back_event_handler, LV_EVENT_CLICKED, menu);
@@ -129,7 +128,7 @@ lv_obj_t *MenuApp::prepareScreen() {
     section = lv_menu_section_create(sub_wifi_page);
 
     // if(WiFi.isConnected()) {
-    create_text(sub_wifi_page, LV_SYMBOL_WIFI, "", LV_MENU_ITEM_BUILDER_VARIANT_3);
+    // create_text(sub_wifi_page, LV_SYMBOL_WIFI, "", LV_MENU_ITEM_BUILDER_VARIANT_3);
     // }
 
     Serial.println("Scan Button");
@@ -227,12 +226,14 @@ void wificonnect(lv_event_t* e) {
 }
 
 void MenuApp::taskFunction( ){
-    hhh=xTaskGetIdleTaskHandle();
     while(isappopen) {
         if(scanning) {
             // WiFi.scanDelete();
+            Serial.println("obj clean");
             lv_obj_clean(wifilist);
+            Serial.println("add text");
             lv_list_add_text(wifilist, "Scanning...");
+            Serial.println("scannets");
             WiFi.scanNetworks(true);
             int n = WiFi.scanComplete();
             while(n == -1) {
@@ -240,6 +241,7 @@ void MenuApp::taskFunction( ){
                 n = WiFi.scanComplete();
                 delay(1000);
             }
+            Serial.println("clean (again)");
             lv_obj_clean(wifilist);
             for(int i = 0; i < n; i++) {
                 int level = calculateSignalLevel(WiFi.RSSI(i), 5);
@@ -271,21 +273,6 @@ void MenuApp::taskFunction( ){
                 lv_obj_add_event_cb(btn, wificonnect, LV_EVENT_CLICKED, &amogus);
             }
             scanning = false;
-        }
-        if(WiFi.isConnected()) {
-            String text = (
-                String("Connected to ") +
-                WiFi.SSID() +
-                String(" with IP ") +
-                WiFi.localIP().toString() +
-                String(",")
-            );
-            if(text != lastText) {
-                lv_label_set_text(constext, text.c_str());
-                lastText = text;
-            }
-        } else {
-            lv_label_set_text(constext, "Disconnected.");
         }
         delay(100);
     }

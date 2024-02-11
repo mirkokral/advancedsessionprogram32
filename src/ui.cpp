@@ -7,6 +7,7 @@
 #include <apps/testapp/TestApp.hpp>
 #include <apps/menuexapp/MenuApp.hpp>
 #include <apps/thermalapp/ThermalApp.hpp>
+#include <apps/luaapp/LuaApp.hpp>
 
 
 // GROUPS
@@ -28,9 +29,9 @@ static lv_obj_t * bWifiClose;
 static lv_obj_t * lWifiClose;
 static lv_obj_t * bWifiScan;
 static lv_obj_t * lWifiScan;
-static lv_obj_t * appScr;
-static lv_obj_t * blankPlaceholder;
-static lv_obj_t * appOverlay;
+// static lv_obj_t * appScr;
+// static lv_obj_t * blankPlaceholder;
+// static lv_obj_t * appOverlay;
 
 // STATE VARIABLES
 bool locked = true;
@@ -76,11 +77,7 @@ void AppTH(void* app) {
     exitApp();     
 }
 void exitApp() {
-    scrollBecauseExitApp = true;
-    lv_obj_scroll_to_x(appOverlay, 0, LV_ANIM_ON);
-    while(lv_obj_get_scroll_x(appOverlay) != 0) {delay(100);}
-    
-    lv_obj_set_parent(cscr, hell);
+    lv_screen_load_anim(mainscr, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
     TaskHandle_t th = currentlyRunningApp->th;
     currentlyRunningApp = NULL;
 
@@ -100,11 +97,7 @@ void RunApp(AppBase* app) {
     if(currentlyRunningApp == NULL) {
         currentlyRunningApp = app;
         cscr = app->prepareScreen();
-
-        lv_obj_set_size(cscr, 320, 240);
-        lv_obj_set_parent(cscr, appOverlay);
-        lv_obj_set_style_pad_all(cscr, 0, LV_PART_MAIN);
-        lv_obj_scroll_to_x(appOverlay, 500, LV_ANIM_ON);
+        lv_screen_load_anim(cscr, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
         xTaskCreate(AppTH, (String(app->name) + " task").c_str(), 16667, (void*)app, 0, NULL);
     }
     
@@ -310,6 +303,11 @@ void ui_init() {
     lv_obj_add_event_cb(tappbtn, click, LV_EVENT_CLICKED, menuapp);
     lv_obj_set_style_bg_opa(tappbtn, 0, LV_PART_MAIN);
 
+    LuaApp* luaapp = new LuaApp();
+    tappbtn = lv_list_add_button(applist, (luaapp->icon), (luaapp->name));
+    lv_obj_add_event_cb(tappbtn, click, LV_EVENT_CLICKED, luaapp);
+    lv_obj_set_style_bg_opa(tappbtn, 0, LV_PART_MAIN);
+
 
     lv_obj_set_style_border_width(applist, 0, LV_PART_MAIN);
     lv_obj_set_style_opa(applist, 0, LV_PART_SCROLLBAR);
@@ -368,37 +366,37 @@ void ui_init() {
     lv_obj_align(pWifi, LV_ALIGN_CENTER,0 ,0);
     lv_obj_align(iWifi, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_set_size(iWifi, LV_PCT(100), LV_PCT(100));
-    appOverlay = lv_obj_create(mainscr);
-    lv_obj_set_size(appOverlay, 320, 240);
-    lv_obj_remove_flag(appOverlay, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_scroll_dir(appOverlay, LV_DIR_HOR);
-    lv_obj_set_scroll_snap_x(appOverlay, LV_SCROLL_SNAP_CENTER);
-    lv_obj_set_style_bg_opa(appOverlay, 0, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(appOverlay, 0, LV_PART_SCROLLBAR);
-    lv_obj_set_style_border_width(appOverlay, 0, LV_PART_SCROLLBAR);
-    lv_obj_set_style_border_width(appOverlay, 0, LV_PART_MAIN);
-    lv_obj_set_style_radius(appOverlay, 0, LV_PART_MAIN);
-    lv_obj_set_flex_flow(appOverlay, LV_FLEX_FLOW_ROW);
-    lv_obj_set_style_pad_all(appOverlay, 0, LV_PART_MAIN);
-    lv_obj_add_event_cb(appOverlay, [](lv_event_t* e){
-        if(!scrollBecauseExitApp) {
-            if(lv_obj_get_scroll_x(appOverlay) == 0) {
-                if(currentlyRunningApp != NULL) {
-                    exitApp();
-                }
-            }
-        } else {
-            scrollBecauseExitApp = false;
-        }
-    }, LV_EVENT_SCROLL_END, NULL);
+    // appOverlay = lv_obj_create(mainscr);
+    // lv_obj_set_size(appOverlay, 320, 240);
+    // lv_obj_remove_flag(appOverlay, LV_OBJ_FLAG_CLICKABLE);
+    // lv_obj_set_scroll_dir(appOverlay, LV_DIR_HOR);
+    // lv_obj_set_scroll_snap_x(appOverlay, LV_SCROLL_SNAP_CENTER);
+    // lv_obj_set_style_bg_opa(appOverlay, 0, LV_PART_MAIN);
+    // lv_obj_set_style_bg_opa(appOverlay, 0, LV_PART_SCROLLBAR);
+    // lv_obj_set_style_border_width(appOverlay, 0, LV_PART_SCROLLBAR);
+    // lv_obj_set_style_border_width(appOverlay, 0, LV_PART_MAIN);
+    // lv_obj_set_style_radius(appOverlay, 0, LV_PART_MAIN);
+    // lv_obj_set_flex_flow(appOverlay, LV_FLEX_FLOW_ROW);
+    // lv_obj_set_style_pad_all(appOverlay, 0, LV_PART_MAIN);
+    // lv_obj_add_event_cb(appOverlay, [](lv_event_t* e){
+    //     if(!scrollBecauseExitApp) {
+    //         if(lv_obj_get_scroll_x(appOverlay) == 0) {
+    //             if(currentlyRunningApp != NULL) {
+    //                 exitApp();
+    //             }
+    //         }
+    //     } else {
+    //         scrollBecauseExitApp = false;
+    //     }
+    // }, LV_EVENT_SCROLL_END, NULL);
 
-    blankPlaceholder = lv_obj_create(appOverlay);
-    lv_obj_set_size(blankPlaceholder, 320, 240);
-    lv_obj_set_style_opa(blankPlaceholder, 0, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(blankPlaceholder, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_opa(blankPlaceholder, 0, LV_PART_MAIN);
-    lv_obj_remove_flag(blankPlaceholder, LV_OBJ_FLAG_CLICKABLE);
-    updateLocked();
+    // blankPlaceholder = lv_obj_create(appOverlay);
+    // lv_obj_set_size(blankPlaceholder, 320, 240);
+    // lv_obj_set_style_opa(blankPlaceholder, 0, LV_PART_MAIN);
+    // lv_obj_set_style_bg_opa(blankPlaceholder, 0, LV_PART_MAIN);
+    // lv_obj_set_style_border_opa(blankPlaceholder, 0, LV_PART_MAIN);
+    // lv_obj_remove_flag(blankPlaceholder, LV_OBJ_FLAG_CLICKABLE);
+    // updateLocked();
 }
 
 void setCurrentlyRunningApp(AppBase app)

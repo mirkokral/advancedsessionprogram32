@@ -120,7 +120,7 @@ lv_indev_t *kb_indev = NULL;
 lv_indev_t *tb_indev = NULL;
 
 // Read key value from esp32c3
-static uint32_t keypad_get_key(void)
+static uint32_t keypad_get_key_temp(void)
 {
     char key_ch = 0;
     Wire.requestFrom(0x55, 1);
@@ -129,6 +129,41 @@ static uint32_t keypad_get_key(void)
         key_ch = Wire.read();
     }
     return key_ch;
+}
+static uint32_t keypad_get_key(void) {
+    uint32_t key = keypad_get_key_temp();
+    if(key == 0x0C) {
+        // Alt+C chord
+        uint32_t chord = keypad_get_key_temp();
+        while(chord == 0) {
+            chord = keypad_get_key_temp();
+            delay(50);
+        }
+        switch (chord)
+        {
+        case ' ': return '\t'; break;
+        case 'q': return '~'; break;
+        case 'w': return '%'; break;
+        case 'e': return '|'; break;
+        case 'r': return '%'; break;
+        case 't': return '{'; break;
+        case 'y': return '}'; break;
+        case '(': return '['; break;
+        case ')': return ']'; break;
+        case 'u': return '^'; break;
+        case 'i': return '<'; break;
+        case 'o': return '>'; break;
+        case 'p': return '='; break;
+        case 'g': return '\\'; break;
+        case 'k': return '~'; break;
+        
+        default:
+            return chord;
+            break;
+        }
+    } else {
+        return key;
+    }
 }
 
 /*Will be called by the library to read the mouse*/
@@ -324,7 +359,6 @@ void setup()
      the Generic -> Touch_calibrate example from the TFT_eSPI library*/
     WiFi.begin();
     WiFi.mode(WIFI_STA);
-    WiFi.disconnect();
     // Set touch int input
     
     Serial.printf("TFT init done in %dms\r\n", millis() - m);
