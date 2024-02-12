@@ -1,7 +1,7 @@
 #pragma once
 
 #include <apps/AppBase.hpp>
-
+void createState();
 class LuaApp : AppBase {
     public:
         char* icon = LV_SYMBOL_FILE;

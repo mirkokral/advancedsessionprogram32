@@ -307,7 +307,7 @@ void ui_init() {
     tappbtn = lv_list_add_button(applist, (luaapp->icon), (luaapp->name));
     lv_obj_add_event_cb(tappbtn, click, LV_EVENT_CLICKED, luaapp);
     lv_obj_set_style_bg_opa(tappbtn, 0, LV_PART_MAIN);
-
+    createState();
 
     lv_obj_set_style_border_width(applist, 0, LV_PART_MAIN);
     lv_obj_set_style_opa(applist, 0, LV_PART_SCROLLBAR);
