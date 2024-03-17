@@ -5,7 +5,11 @@ bool luaappopen = true;
 lv_obj_t* table;
 lv_obj_t* input;
 lua_State* state = luaL_newstate();
-#define append(item) lv_table_set_cell_value(table, lv_table_get_row_count(table), 0, item); lv_table_set_column_width(table, lv_table_get_column_count(table)-1, 310);
+
+// A function to append a row to lvgl table "table"
+void append(const char* s) {
+    lv_table_set_cell_value(table, lv_table_get_row_cnt(table), 0, s);
+}
 
 //// WRAPPERS
 extern "C" {
@@ -13,12 +17,13 @@ extern "C" {
         append(lua_tostring(l, 1));
         return 0;
     }
+    
 }
 //// END
 
 void createState() {
     luaL_openlibs(state);
-    lua_register(state, "print", lua_print);
+    lua_register(state, "t", lua_print);
 }
 
 lv_obj_t *LuaApp::prepareScreen() {
@@ -54,11 +59,14 @@ lv_obj_t *LuaApp::prepareScreen() {
     append("test");
     lv_obj_add_event_cb(sendbtn, [](lv_event_t* e) {
         // if(lv_indev_get_key(lv_indev_active()) == LV_KEY_ENTER) {
-            const char* s = lv_textarea_get_text(input);
+            const char* s = (String(lv_textarea_get_text(input))).c_str();
+            // append((">> " + String(lv_textarea_get_text(input))).c_str());
             if((luaL_loadstring(state, s) || lua_pcall(state, 0, LUA_MULTRET, 0))) {
                 append("Error running code");
             }
+            
             lv_textarea_set_text(input, "");
+            lv_group_focus_obj(input);
         // }
     }, LV_EVENT_CLICKED, NULL);
     return scr;
