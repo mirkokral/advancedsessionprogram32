@@ -8,6 +8,7 @@
 #include <apps/menuexapp/MenuApp.hpp>
 #include <apps/thermalapp/ThermalApp.hpp>
 #include <apps/luaapp/LuaApp.hpp>
+#include <apps/fileman/FileApp.hpp>
 
 
 // GROUPS
@@ -272,10 +273,6 @@ void ui_init() {
     lv_obj_align(wp, LV_ALIGN_CENTER, 0, 0);
     // Create the clock
     
-    clocklabel = lv_label_create(mainscr);
-    lv_obj_align(clocklabel, LV_ALIGN_CENTER, 0, -40);
-    lv_label_set_text(clocklabel, "10:30");
-    lv_obj_set_style_text_font(clocklabel, &lv_font_montserrat_48, LV_STATE_ANY);
 
     gr = lv_group_create();
     /*Create a list*/
@@ -306,6 +303,11 @@ void ui_init() {
     LuaApp* luaapp = new LuaApp();
     tappbtn = lv_list_add_button(applist, (luaapp->icon), (luaapp->name));
     lv_obj_add_event_cb(tappbtn, click, LV_EVENT_CLICKED, luaapp);
+    lv_obj_set_style_bg_opa(tappbtn, 0, LV_PART_MAIN);
+    
+    FileApp* fileapp = new FileApp();
+    tappbtn = lv_list_add_button(applist, (fileapp->icon), (fileapp->name));
+    lv_obj_add_event_cb(tappbtn, click, LV_EVENT_CLICKED, fileapp);
     lv_obj_set_style_bg_opa(tappbtn, 0, LV_PART_MAIN);
     createState();
 
