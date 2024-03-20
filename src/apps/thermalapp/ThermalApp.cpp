@@ -64,6 +64,7 @@ void ThermalApp::taskFunction( ){
             } else {
                 lv_label_set_text(printbuttonlbl, "Failed to find any device");
                 delay(1000);
+                break;
             }
             // if(!tpIsConnected) {
             //     tpConnect("123:456");

@@ -1,6 +1,5 @@
 #pragma once
 #include "esp_heap_caps.h"
-
 #include <lvgl.h>
 #include <Arduino.h>
 #include <utilities.h>
@@ -12,12 +11,9 @@
   and uncomment the following line.
 */
 #include <ui.hpp>
+#include "tft.hpp"
 #define TOUCH_MODULES_GT911 1
 #include <TouchLib.h>
 #include <esp32-hal-psram.h>
-#include <LovyanGFX.hpp>
-#include <lgfx.h>
-#include <SoftwareSerial.h>
-static LGFX tft;
 
 void LOG(String what);

@@ -1,4 +1,13 @@
 #include <Arduino.h>
+#include <SoftwareSerial.h>
+#include <config.h>
+#include <settings.hpp>
+
+#if 1
+    SoftwareSerial ss(3, 1);
+    #define Serial ss // Still be able to access serial using the grove port on the side
+#endif
+
 #include <main.hpp>
 #include <rsi.hpp>
 
@@ -126,14 +135,18 @@ static bool getTouch(int32_t &x, int32_t &y)
     return true;
 }
 /* Display flushing */
-void my_disp_flush(lv_display_t *disp, const lv_area_t *area, void *px_map)
+void my_disp_flush(lv_display_t * disp, const lv_area_t * area, lv_color16_t * px_map)
 {
     uint32_t w = (area->x2 - area->x1 + 1);
     uint32_t h = (area->y2 - area->y1 + 1);
 
     tft.startWrite();
     tft.setAddrWindow(area->x1, area->y1, w, h);
-    tft.pushColors((uint16_t *)px_map, w * h, true);
+    #if PUSHPIXELS_USE_DMA
+    tft.pushPixelsDMA((uint16_t *)px_map, w * h, true); // Each pixel takes 2 bytes (16 bits)
+    #else
+    tft.pushPixels((uint16_t*)px_map, w*h, true);
+    #endif
     tft.endWrite();
 
     lv_disp_flush_ready(disp);
@@ -146,7 +159,7 @@ lv_indev_t *kb_indev = NULL;
 lv_indev_t *tb_indev = NULL;
 
 // Read key value from esp32c3
-static uint32_t keypad_get_key(void)
+static uint32_t keypad_get_key_temp(void)
 {
     char key_ch = 0;
     Wire.requestFrom(0x55, 1);
@@ -155,6 +168,41 @@ static uint32_t keypad_get_key(void)
         key_ch = Wire.read();
     }
     return key_ch;
+}
+static uint32_t keypad_get_key(void) {
+    uint32_t key = keypad_get_key_temp();
+    if(key == 0x0C) {
+        // Alt+C chord
+        uint32_t chord = keypad_get_key_temp();
+        while(chord == 0) {
+            chord = keypad_get_key_temp();
+            delay(50);
+        }
+        switch (chord)
+        {
+        case ' ': return '\t'; break;
+        case 'q': return '~'; break;
+        case 'w': return '%'; break;
+        case 'e': return '|'; break;
+        case 'r': return '%'; break;
+        case 't': return '{'; break;
+        case 'y': return '}'; break;
+        case '(': return '['; break;
+        case ')': return ']'; break;
+        case 'u': return '^'; break;
+        case 'i': return '<'; break;
+        case 'o': return '>'; break;
+        case 'p': return '='; break;
+        case 'g': return '\\'; break;
+        case 'k': return '~'; break;
+        // stole this directly outta tulipcc docs :tr:
+        default:
+            return chord;
+            break;
+        }
+    } else {
+        return key;
+    }
 }
 
 /*Will be called by the library to read the mouse*/
@@ -202,24 +250,53 @@ static void trackball_read(lv_indev_t *indev_drv, lv_indev_data_t *data)
     switch (fi)
     {
     case 0:
-        lki = LV_KEY_RIGHT;
-        data->key = LV_KEY_RIGHT;
-        data->state = LV_INDEV_STATE_PR;
+        if (uSettings.trackball_mode == TRACKBALL_MODE_ARROW) {
+            lki = LV_KEY_RIGHT;
+            data->key = LV_KEY_RIGHT;
+            data->state = LV_INDEV_STATE_PR;
+        }
         break;
     case 1:
-        lki = LV_KEY_UP;
-        data->key = LV_KEY_UP;
-        data->state = LV_INDEV_STATE_PR;
+        switch(uSettings.trackball_mode) {
+            case TRACKBALL_MODE_NONE:
+            case TRACKBALL_MODE_CURSOR:
+                break;
+            case TRACKBALL_MODE_NAVIGATE:
+                lki = LV_KEY_PREV;
+                data->key = LV_KEY_PREV;
+                data->state = LV_INDEV_STATE_PR;
+                break;
+            case TRACKBALL_MODE_ARROW:
+                lki = LV_KEY_UP;
+                data->key = LV_KEY_UP;
+                data->state = LV_INDEV_STATE_PR;
+                break;
+        }
         break;
     case 2:
-        lki = LV_KEY_LEFT;
-        data->key = LV_KEY_LEFT;
-        data->state = LV_INDEV_STATE_PR;
+        if(uSettings.trackball_mode == TRACKBALL_MODE_ARROW) {
+
+            lki = LV_KEY_LEFT;
+            data->key = LV_KEY_LEFT;
+            data->state = LV_INDEV_STATE_PR;
+        }
         break;
     case 3:
-        lki = LV_KEY_DOWN;
-        data->key = LV_KEY_DOWN;
-        data->state = LV_INDEV_STATE_PR;
+        switch(uSettings.trackball_mode) {
+            case TRACKBALL_MODE_NONE:
+            case TRACKBALL_MODE_CURSOR:
+                break;
+            case TRACKBALL_MODE_NAVIGATE:
+                lki = LV_KEY_NEXT;
+                data->key = LV_KEY_NEXT;
+                data->state = LV_INDEV_STATE_PR;
+                break;
+            case TRACKBALL_MODE_ARROW:
+                lki = LV_KEY_DOWN;
+                data->key = LV_KEY_DOWN;
+                data->state = LV_INDEV_STATE_PR;
+                break;
+        }
         break;
     case 4:
         // lki = LV_KEY_ENTER;
@@ -301,7 +378,6 @@ void setup()
     m = millis();
     pinMode(BOARD_POWERON, OUTPUT);
     digitalWrite(BOARD_POWERON, HIGH);
-
     //! Set CS on all SPI buses to high level during initialization
     pinMode(BOARD_SDCARD_CS, OUTPUT);
     pinMode(RADIO_CS_PIN, OUTPUT);
@@ -335,17 +411,16 @@ void setup()
     tft.setCursor(0, 0);
     if(!LittleFS.begin()) {
         LittleFS.format();
+        Serial.println("LittleFS format done");
         if(!LittleFS.begin()) {
             PANIC("LittleFS.begin() failed after retry.", "check for damages, replace chip or retry by resetting");
         }
     };
+    settings::read_from_littlefs();
     // PANIC("Test", "commenting out this line");
     /*Set the touchscreen calibration data,
      the actual data for your display can be acquired using
      the Generic -> Touch_calibrate example from the TFT_eSPI library*/
-    WiFi.begin();
-    WiFi.mode(WIFI_STA);
-    WiFi.disconnect();
     // Set touch int input
     
     LOGP("TFT init done in %dms\r\n", millis() - m);
@@ -424,6 +499,15 @@ void setup()
     pqd;
 }
 
+/**
+ * A function that handles the main loop of the program.
+ *
+ * @param None
+ *
+ * @return None
+ *
+ * @throws None
+ */
 void loop()
 {
     
