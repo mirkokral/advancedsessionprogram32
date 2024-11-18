@@ -1,2 +1,1 @@
-# ASP
-## very very app launcher
+# Note: this project is put on hold. I am working on a backend rewrite with (possibly) cross platform support. My current T-Deck has the keyboard broken off, and because of that i am planning on buying a t-deck plus, on which development will continue.
