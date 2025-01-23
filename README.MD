@@ -1,2 +1,1 @@
-# Note: this project is put on hold. I am working on a backend rewrite with (possibly) cross platform support. My current T-Deck has the keyboard broken off, and because of that i am planning on buying a t-deck plus, on which development will continue.
-# Note 2: Instead of a T-Deck plus, i bought a t-watch because of unavailability in slovakia. The t-deck will maybe still be supported but added compatibility for watches will arrive
+# The device used to develop this broke, and a replacement was not found.
